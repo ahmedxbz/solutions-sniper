@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:8787/api/solve';
+const API_URL = 'https://solutions-sniper.onrender.com/api/solve';
 let currentLang = 'ar';
 
 const TRANSLATIONS = {
