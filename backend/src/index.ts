@@ -27,12 +27,13 @@ app.post('/api/solve', async (c) => {
       console.log(`[DISCOVERY] Searching YouTube for: ${searchQuery}`);
       
       const r = await ytSearch(searchQuery);
-      const topVideo = r.videos[0];
+      // FILTER: Only videos < 20 minutes (1200s) to avoid 429s and keep context tight
+      const topVideo = r.videos.find(v => v.seconds < 1200) || r.videos[0];
       
       if (!topVideo) return c.json({ error: "No relevant instructional video found for this lesson." }, 404);
       
       videoUrl = topVideo.url;
-      console.log(`[DISCOVERY] Found Best Match: ${topVideo.title}`);
+      console.log(`[DISCOVERY] Found Optimized Match (<20m): ${topVideo.title}`);
     }
 
     let transcriptData = "";
@@ -78,24 +79,22 @@ app.post('/api/solve', async (c) => {
     const target = question ? `solve ${question}` : (page ? `solve page ${page}` : 'solve the main exercise');
     const context = `Lesson: ${subject} ${grade}. Context: Iraqi student curriculum.`;
 
-    // Safe High-Context Window (30k chars) to prevent 413 Payload Too Large
-    const transcriptWindow = transcriptData.length > 30000 
-        ? transcriptData.substring(transcriptData.length - 30000) 
+    // High-Efficiency Window (15k chars) to prevent 429s for multiple users
+    const transcriptWindow = transcriptData.length > 15000 
+        ? transcriptData.substring(transcriptData.length - 15000) 
         : transcriptData;
 
-    const prompt = `You are a precision Iraqi Education Sniper. I will give you a messy transcript.
-Your mission is to output a SINGLE, CONSOLIDATED list of solved exercises.
+    const prompt = `You are a precision Iraqi Education Sniper. I need the final answers for ${target}.
 
-STRICT CONSTRAINTS:
-1. MERGE DUPLICATES: If the teacher explains the same sentence or problem multiple times, you must output it only ONCE.
-2. GROUPING: Group all parsing (اعراب) or mathematics related to the same problem number under one heading.
-3. IDENTIFY EXERCISES: Look for "التمرين" (Exercise) or sentence numbers to separate tasks.
-4. NO REPETITION: Do not summarize the transcript. Sniper-extract the final conclusion for each numbered item.
-
-Format: "X. [Target Problem]: Final Answer"
+Extraction Rules:
+1. Output a CLEAN, DISTINCT numbered list.
+2. If multiple questions are asked, number them (1, 2, 3...).
+3. Extract ONLY the final result of the exercise.
+4. NO teaching. NO explanation. NO repetition.
+5. If specifically for a Page, filter only for that page's answers.
 
 ${context}
-Transcript Window: 
+Transcript Window (Tail): 
 ${transcriptWindow}`;
 
     const groqResponse = await axios.post("https://api.groq.com/openai/v1/chat/completions", {
@@ -119,3 +118,4 @@ ${transcriptWindow}`;
 });
 
 export default app;
+
