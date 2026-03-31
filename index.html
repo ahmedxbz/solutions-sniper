@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework Sniper | قناص الواجبات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0f1115">
+</head>
+
+<body>
+    <div class="lang-switcher">
+        <button onclick="toggleLanguage()" id="lang-btn">English</button>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <h1 data-i18n="app-title">🎯 قناص الواجبات</h1>
+            <p data-i18n="app-subtitle">استخراج الحلول من دروس اليوتيوب العراقية</p>
+        </header>
+
+        <main id="main-content">
+            <div id="search-mode" class="tab-content active">
+                <div class="form-group">
+                    <label data-i18n="label-grade">المرحلة الدراسية</label>
+                    <select id="grade-select">
+                        <option value="اول متوسط">اول متوسط (1st Intermediate)</option>
+                        <option value="ثاني متوسط">ثاني متوسط (2nd Intermediate)</option>
+                        <option value="ثالث متوسط">ثالث متوسط (3rd Intermediate)</option>
+                        <option value="رابع اعدادي">رابع اعدادي (4th Preparatory)</option>
+                        <option value="خامس اعدادي">خامس اعدادي (5th Preparatory)</option>
+                        <option value="سادس اعدادي">سادس اعدادي (6th Preparatory)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label-subject">المادة</label>
+                    <select id="subject-select">
+                        <option value="رياضيات">رياضيات (Math)</option>
+                        <option value="قواعد اللغة العربية">قواعد اللغة العربية (Arabic Grammar)</option>
+                        <option value="احياء">احياء (Biology)</option>
+                        <option value="كيمياء">كيمياء (Chemistry)</option>
+                        <option value="فيزياء">فيزياء (Physics)</option>
+                        <option value="انجليزي">انجليزي (English)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label-page">رقم الصفحة</label>
+                    <input type="number" id="page-number" placeholder="مثال: 45">
+                </div>
+                <button onclick="solveSearch()" class="action-btn" data-i18n="btn-solve">اكتشاف واستخراج الحل 🔍</button>
+            </div>
+
+            <div id="loading" class="hidden">
+                <div class="spinner"></div>
+                <p id="execution-status" data-i18n="status-init">جاري تشغيل محرك القناص...</p>
+            </div>
+
+            <div id="result-container" class="hidden">
+                <div class="result-header">
+                    <h3 data-i18n="result-title">النتيجة المستخرجة:</h3>
+                    <button class="copy-btn" onclick="copyResult()" data-i18n="btn-copy">نسخ</button>
+                </div>
+                <div id="answer-box"></div>
+                <a id="source-link" target="_blank" href="#" data-i18n="link-source">مشاهدة المقطع الأصلي</a>
+            </div>
+
+            <div id="history-section">
+                <h3 data-i18n="history-title">آخر العمليات</h3>
+                <ul id="history-list"></ul>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker Registered'));
+        }
+    </script>
+</body>
+
+</html>
