@@ -36,23 +36,31 @@ app.post('/api/solve', async (c) => {
       console.log(`[DISCOVERY] Found Optimized Match (<20m): ${topVideo.title}`);
     }
 
+    const ytCookie = process.env.YT_COOKIE || "";
+
     let transcriptData = "";
     let methodUsed = "NONE";
     
-    // TIER 1: FAST PATH (Subtitles / CC)
+    // TIER 1: FAST PATH (Subtitles / CC with Cookie Bypass)
     try {
       console.log(`[SNIPER] Checking CC for: ${videoUrl}`);
-      const tracks = await YoutubeTranscript.fetchTranscript(videoUrl, { lang: 'ar' });
+      // Using Cookie-Enabled Fetch for Transcripts
+      const tracks = await YoutubeTranscript.fetchTranscript(videoUrl, { 
+        lang: 'ar',
+        config: { headers: { 'Cookie': ytCookie } } 
+      });
       transcriptData = tracks.map(t => t.text).join(' ');
       methodUsed = "ARABIC_CC";
     } catch (e) {
       try {
-        const fallbacks = await YoutubeTranscript.fetchTranscript(videoUrl);
+        const fallbacks = await YoutubeTranscript.fetchTranscript(videoUrl, {
+            config: { headers: { 'Cookie': ytCookie } }
+        });
         transcriptData = fallbacks.map(f => f.text).join(' ');
         methodUsed = "FALLBACK_CC";
       } catch (err) {
-        // TIER 2: HEAVY PATH (Audio Sniper)
-        console.log(`[SNIPER] Engaging Audio Sniper. This might take 30s...`);
+        // TIER 2: HEAVY PATH (Audio Sniper with Cookie Bypass)
+        console.log(`[SNIPER] Bot detection might be active. Engaging Authenticated Audio Sniper...`);
         let audioFilePath = await downloadAudio(videoUrl);
         
         try {
@@ -73,7 +81,9 @@ app.post('/api/solve', async (c) => {
       }
     }
 
-    if (!transcriptData) return c.json({ error: "Could not extract lesson content." }, 500);
+    if (!transcriptData) {
+        return c.json({ error: "Sniper Blocked by YouTube. Please update your YT_COOKIE in Render." }, 500);
+    }
 
     // TIER 3: PRECISION EXTRACTION
     const target = question ? `solve ${question}` : (page ? `solve page ${page}` : 'solve the main exercise');
@@ -118,4 +128,5 @@ ${transcriptWindow}`;
 });
 
 export default app;
+
 
