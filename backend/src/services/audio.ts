@@ -8,8 +8,19 @@ export async function downloadAudio(videoUrl: string): Promise<string> {
     const filePath = path.join(process.cwd(), `\${videoId}.webm`);
     
     return new Promise((resolve, reject) => {
-        console.log(`[AUDIO ENGINE] CC Disabled. Downloading raw stream for: \${videoId}`);
-        const stream = ytdl(videoUrl, { filter: 'audioonly', quality: 'lowestaudio' });
+        const ytCookie = process.env.YT_COOKIE || "";
+        console.log(`[AUDIO ENGINE] CC Disabled. Downloading raw stream (Authenticated) for: ${videoId}`);
+        
+        const stream = ytdl(videoUrl, { 
+            filter: 'audioonly', 
+            quality: 'lowestaudio',
+            requestOptions: {
+                headers: {
+                    'Cookie': ytCookie,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                }
+            }
+        });
         const writeStream = fs.createWriteStream(filePath);
         
         stream.pipe(writeStream);
